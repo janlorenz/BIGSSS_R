@@ -4,6 +4,16 @@ author: "Jan Lorenz"
 format: html
 ---
 
+## Presentation
+
+<div>
+
+```{=html}
+<iframe class="slide-deck" src="presentation.html"></iframe>
+```
+
+</div>
+
 ## Quarto
 
 Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
