@@ -7,7 +7,7 @@ format: html
 ## Presentation
 
 ```{=html}
-<iframe class="slide-deck" width="100%" height="600" src="presentation.html"></iframe>
+<iframe class="slide-deck" width="100%" height="500" src="presentation.html"></iframe>
 ```
 
 ## Quarto
