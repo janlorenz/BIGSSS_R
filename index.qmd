@@ -6,13 +6,9 @@ format: html
 
 ## Presentation
 
-<div>
-
 ```{=html}
 <iframe class="slide-deck" src="presentation.html"></iframe>
 ```
-
-</div>
 
 ## Quarto
 
