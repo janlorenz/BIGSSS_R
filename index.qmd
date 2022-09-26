@@ -1,0 +1,26 @@
+---
+title: "A small document"
+author: "Jan Lorenz"
+format: 
+  html:
+    code-fold: true
+---
+
+```{r}
+#| include: false
+library(tidyverse)
+```
+
+
+## There is just this headline
+
+And then this text with this figure.
+
+```{r}
+mpg |> ggplot(aes(cty, hwy)) + geom_point()
+
+```
+
+Whats next?
+
+Optionally we can go through how we can make this a website on the internet with the help of GitHub pages. 
