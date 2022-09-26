@@ -1,0 +1,842 @@
+---
+title: "Tips for Great Visualizations"
+subtitle: "Credits: [Data Science in a Box](https://datasciencebox.org)"
+author: Jan Lorenz
+format:
+  revealjs: 
+    slide-number: true
+    chalkboard: 
+      buttons: true
+    preview-links: auto
+    logo: img/JACOBS_LOGO_RGB_Internet.jpg
+    footer: ""
+---
+
+## Keep it simple
+
+::: columns
+::: {.column width="40%"}
+![](img/pie-3d.jpg)
+:::
+
+::: {.column width="60%"}
+```{r}
+#| message: false
+library(tidyverse)
+library(scales)
+d <- tribble(
+  ~category, ~value,
+  "Cutting tools", 0.03,
+  "Buildings and administration", 0.22,
+  "Labor", 0.31,
+  "Machinery", 0.27,
+  "Workplace materials", 0.17
+)
+ggplot(d, aes(x = fct_reorder(category, value), y = value)) +
+  geom_col() +
+  theme_minimal(base_size = 24) +
+  coord_flip() +
+  labs(x = "", y = "")
+```
+:::
+:::
+
+## Use color to draw attention
+
+```{r}
+library(patchwork)
+g1 <- d |> mutate(category = str_replace(category, " ", "\n")) %>%
+  ggplot(aes(x = category, y = value, fill = category)) +
+  geom_col() +
+  theme_minimal() +
+  labs(x = "", y = "") +
+  theme(legend.position = "none")
+g2 <- d |> ggplot(aes(x = fct_reorder(category, value), y = value, fill = category)) +
+  geom_col() +
+  theme_minimal(base_size =  18) +
+  coord_flip() +
+  labs(x = "", y = "") +
+  scale_fill_manual(values = c("red", rep("gray", 4))) +
+  theme(legend.position = "none")
+g1 + g2
+```
+
+
+## Tell a story 
+
+What is the (main) purpose of the visualization?
+
+![](img/time-series-story.png)
+
+::: {style="font-size:50%;"}
+Credit: Angela Zoss and Eric Monson, Duke DVS
+:::
+
+
+
+## Principles	for	effective	visualizations
+
+- Order matters
+- Put long categories on the y-axis
+- Use meaningful labels
+- **Pick a purpose**
+- Select meaningful colors
+
+
+
+## Data
+
+In September 2019, YouGov survey asked 1,639 adults in the UK the following question:
+
+:::{style="font-size:80%;"} 
+*In hindsight, do you think Britain was right/wrong to vote to leave EU?*   
+🔲 Right to leave | 🔲 Wrong to leave | 🔲 Don't know
+:::
+
+```{r}
+#| fig-height: 3
+#| fig-width: 5
+#| fig-align: center
+brexit <- tibble(
+  opinion = c(rep("Right", 664), rep("Wrong", 787), rep("Don't know", 188)),
+  region = c(
+    rep("london", 63), rep("rest_of_south", 241), rep("midlands_wales", 145), 
+    rep("north", 176), rep("scot", 39),
+    rep("london", 110), rep("rest_of_south", 257), rep("midlands_wales", 152), 
+    rep("north", 176), rep("scot", 92),
+    rep("london", 24), rep("rest_of_south", 49), rep("midlands_wales", 57), 
+    rep("north", 48), rep("scot", 10)
+  )
+)
+ggplot(brexit, aes(x = opinion)) +
+  geom_bar()
+```
+
+
+## Order Matters
+
+Alphabetical order is rarely what you want!
+
+:::{.panel-tabset}
+
+### Plot
+
+```{r}
+#| fig-height: 3
+#| fig-width: 5
+#| fig-align: center
+ggplot(brexit, aes(x = opinion)) +
+  geom_bar()
+```
+
+### Code
+
+```r
+ggplot(brexit, aes(x = opinion)) +
+  geom_bar()
+```
+
+:::
+
+
+
+## Order Matters
+
+Often good: Order by frequency
+
+:::{.panel-tabset}
+
+### Plot
+
+```{r}
+#| fig-height: 3
+#| fig-width: 5
+#| fig-align: center
+ggplot(brexit, aes(x = fct_infreq(opinion))) +
+  geom_bar()
+```
+
+### Code
+
+`fct_infreq`: (Creates and) reorders a factor by the frequency. 
+
+```r
+ggplot(brexit, aes(x = fct_infreq(opinion))) +
+  geom_bar()
+```
+
+:::
+
+
+## Clean up labels
+
+:::{.panel-tabset}
+
+### Plot
+
+```{r}
+#| fig-height: 3
+#| fig-width: 5
+#| fig-align: center
+ggplot(brexit, aes(x = fct_infreq(opinion))) +
+  geom_bar() +
+  labs(
+    x = "Opinion",
+    y = "Count"
+  )
+```
+
+### Code
+
+```r
+ggplot(brexit, aes(x = fct_infreq(opinion))) +
+  geom_bar() +
+  labs(
+    x = "Opinion",
+    y = "Count"
+  )
+```
+
+:::
+
+
+## Order Matters
+
+Alphabetical order is rarely what you want!
+
+:::{.panel-tabset}
+
+### Plot
+
+```{r}
+#| fig-height: 3
+#| fig-width: 5
+#| fig-align: center
+ggplot(brexit, aes(x = region)) +
+  geom_bar()
+```
+
+### Code
+
+```r
+ggplot(brexit, aes(x = region)) +
+  geom_bar()
+```
+
+:::
+
+
+
+## Use inherent level order
+
+Reorder manually with a custom order
+
+:::{.panel-tabset}
+
+### Relevel
+
+`fct_relevel`: Reorders the levels of a factor as specified
+
+```{r}
+#| echo: true
+brexit <- brexit |> 
+  mutate(region = fct_relevel(
+    region,
+    "london", "rest_of_south", "midlands_wales", "north", "scot"
+  ))
+```
+
+### Plot
+
+```{r}
+#| fig-height: 3
+#| fig-width: 5
+#| fig-align: center
+ggplot(brexit, aes(x = region)) +
+  geom_bar()
+```
+
+:::
+
+
+
+## Clean factor labels 
+
+Reorder manually with a custom order
+
+:::{.panel-tabset}
+
+### Recode
+
+`fct_recode`: Change factor levels by hand
+
+```{r}
+#| echo: true
+brexit <- brexit |> 
+  mutate(
+    region = fct_recode(
+      region,
+      London = "london",
+      `Rest of South` = "rest_of_south",
+      `Midlands / Wales` = "midlands_wales",
+      North = "north",
+      Scotland = "scot"
+    )
+  )
+```
+
+### Plot
+
+```{r}
+#| fig-height: 3
+#| fig-width: 5
+#| fig-align: center
+ggplot(brexit, aes(x = region)) +
+  geom_bar()
+```
+
+:::
+
+
+## Long categories are better readable on the y-axis
+
+:::{.panel-tabset}
+
+### Plot
+
+```{r}
+#| fig-height: 3
+#| fig-width: 5
+#| fig-align: center
+ggplot(brexit, aes(y = region)) +
+  geom_bar()
+```
+
+### Code
+
+```r
+ggplot(brexit, aes(y = region)) +
+  geom_bar()
+```
+
+:::
+
+
+
+## Reverse the order of levels
+
+:::{.panel-tabset}
+
+### Plot
+
+```{r}
+#| fig-height: 3
+#| fig-width: 5
+#| fig-align: center
+ggplot(brexit, aes(y = fct_rev(region))) +
+  geom_bar()
+```
+
+### Code
+
+`fct_rev`: Reverse order of factor levels
+
+```r
+ggplot(brexit, aes(y = fct_rev(region))) +
+  geom_bar()
+```
+
+:::
+
+
+
+## Clean up axis lables 
+
+:::{.panel-tabset}
+
+### Plot
+
+```{r}
+#| fig-height: 3
+#| fig-width: 5
+#| fig-align: center
+ggplot(brexit, aes(y = fct_rev(region))) +
+  geom_bar() +
+  labs(
+    x = "Count",
+    y = "Region"
+  )
+```
+
+### Code
+
+```r
+ggplot(brexit, aes(y = fct_rev(region))) +
+  geom_bar() +
+  labs(
+    x = "Count",
+    y = "Region"
+  )
+```
+
+:::
+
+
+## Pick a purpose
+
+What is the (main) purpose of the visualization?  
+
+Purpose: **Show how support for Brexit differs regionally**
+
+
+## First try: Segmented stacked barplot
+
+:::{.panel-tabset}
+
+### Plot 1
+
+```{r}
+#| fig-height: 3
+#| fig-width: 5
+#| fig-align: center
+ggplot(brexit, aes(y = opinion, fill = region)) +
+  geom_bar()
+```
+
+### Code 1
+
+```r
+ggplot(brexit, aes(y = opinion, fill = region)) +
+  geom_bar()
+```
+
+### Plot 2
+
+```{r}
+#| fig-height: 3
+#| fig-width: 5
+#| fig-align: center
+ggplot(brexit, aes(y = opinion, fill = region)) +
+  geom_bar()
+```
+
+### Code 2
+
+```r
+ggplot(brexit, aes(y = opinion, fill = region)) +
+  geom_bar()
+```
+
+:::
+
+. . . 
+
+They are both hard to read.
+
+
+## Use facets
+
+:::{.panel-tabset}
+
+### Plot
+
+```{r}
+#| fig-height: 4
+#| fig-width: 8
+#| fig-align: center
+ggplot(brexit, aes(y = opinion, fill = region)) +
+  geom_bar() + 
+  facet_wrap("region", nrow = 1)
+```
+
+### Code 
+
+```r
+ggplot(brexit, aes(y = opinion, fill = region)) +
+  geom_bar() + 
+  facet_wrap("region", nrow = 1)
+```
+
+:::
+
+
+## Avoid redundancy?
+
+Redundancy can help to tell a story. 
+
+:::{.panel-tabset}
+
+### Plot 1
+
+```{r}
+#| fig-height: 4
+#| fig-width: 8
+#| fig-align: center
+ggplot(brexit, aes(y = opinion)) +
+  geom_bar() + 
+  facet_wrap("region", nrow = 1)
+```
+
+### Plot 2
+```{r}
+#| fig-height: 4
+#| fig-width: 8
+#| fig-align: center
+ggplot(brexit, aes(y = opinion, fill = opinion)) +
+  geom_bar() + 
+  facet_wrap("region", nrow = 1)
+```
+
+### Code 
+```r
+ggplot(brexit, aes(y = opinion, fill = opinion)) +
+  geom_bar() + 
+  facet_wrap("region", nrow = 1)
+```
+:::
+
+## Be selective with redundancy
+
+:::{.panel-tabset}
+
+### Plot
+
+```{r}
+#| fig-height: 4
+#| fig-width: 8
+#| fig-align: center
+ggplot(brexit, aes(y = opinion, fill = opinion)) +
+  geom_bar() + 
+  facet_wrap("region", nrow = 1) + 
+  guides(fill = "none")
+```
+
+### Code 
+```r
+ggplot(brexit, aes(y = opinion, fill = opinion)) +
+  geom_bar() + 
+  facet_wrap("region", nrow = 1) + 
+  guides(color = "none")
+```
+:::
+
+
+## Use informative labels
+
+:::{.panel-tabset}
+
+### Plot 1
+
+```{r}
+#| fig-height: 4
+#| fig-width: 8
+#| fig-align: center
+ggplot(brexit, aes(y = opinion, fill = opinion)) +
+  geom_bar() + 
+  facet_wrap("region", nrow = 1) + 
+  guides(fill = "none") +
+  labs(
+    title = "Was Britain right/wrong to vote to leave EU?",
+    x = NULL, y = NULL
+  )
+```
+
+### Code 
+```r
+ggplot(brexit, aes(y = opinion, fill = opinion)) +
+  geom_bar() + 
+  facet_wrap("region", nrow = 1) + 
+  guides(fill = "none") +
+  labs(
+    title = "Was Britain right/wrong to vote to leave EU?",
+    x = NULL, y = NULL
+  )
+```
+:::
+
+
+
+## More information (Survey and Source)
+
+:::{.panel-tabset}
+
+### Plot 1
+
+```{r}
+#| fig-height: 4
+#| fig-width: 8
+#| fig-align: center
+ggplot(brexit, aes(y = opinion, fill = opinion)) +
+  geom_bar() + 
+  facet_wrap("region", nrow = 1) + 
+  guides(fill = "none") +
+  labs(
+    title = "Was Britain right/wrong to vote to leave EU?",
+    subtitle = "YouGov Survey Results, 2-3 September 2019",
+    caption = "Source: https://d25d2506sfb94s.cloudfront.net/cumulus_uploads/document/x0msmggx08/YouGov%20-%20Brexit%20and%202019%20election.pdf",
+    x = NULL, y = NULL
+  )
+```
+
+### Plot 2
+
+```{r}
+#| fig-height: 4
+#| fig-width: 8
+#| fig-align: center
+ggplot(brexit, aes(y = opinion, fill = opinion)) +
+  geom_bar() + 
+  facet_wrap("region", nrow = 1) + 
+  guides(fill = "none") +
+  labs(
+    title = "Was Britain right/wrong to vote to leave EU?",
+    subtitle = "YouGov Survey Results, 2-3 September 2019",
+    caption = "Source document from YouGov: bit.ly/2lCJZVg",
+    x = NULL, y = NULL
+  )
+```
+
+### Code 
+```r
+ggplot(brexit, aes(y = opinion, fill = opinion)) +
+  geom_bar() + 
+  facet_wrap("region", nrow = 1) + 
+  guides(fill = "none") +
+  labs(
+    title = "Was Britain right/wrong to vote to leave EU?",
+    subtitle = "YouGov Survey Results, 2-3 September 2019",
+    caption = "Source document from YouGov: bit.ly/2lCJZVg",
+    x = NULL, y = NULL
+  )
+```
+:::
+
+
+## Select meaningful colors
+
+Are the default rainbow colors meaningful?
+
+
+```{r}
+#| fig-height: 4
+#| fig-width: 8
+#| fig-align: center
+ggplot(brexit, aes(y = opinion, fill = opinion)) +
+  geom_bar() + 
+  facet_wrap("region", nrow = 1) + 
+  guides(fill = "none") +
+  labs(
+    title = "Was Britain right/wrong to vote to leave EU?",
+    subtitle = "YouGov Survey Results, 2-3 September 2019",
+    caption = "Source document from YouGov: bit.ly/2lCJZVg",
+    x = NULL, y = NULL
+  )
+```
+
+
+## Pick colors manually
+
+:::{.panel-tabset}
+
+### Plot 
+
+```{r}
+#| fig-height: 4
+#| fig-width: 8
+#| fig-align: center
+ggplot(brexit, aes(y = opinion, fill = opinion)) +
+  geom_bar() + 
+  facet_wrap("region", nrow = 1) + 
+  guides(fill = "none") +
+  labs(
+    title = "Was Britain right/wrong to vote to leave EU?",
+    subtitle = "YouGov Survey Results, 2-3 September 2019",
+    caption = "Source document from YouGov: bit.ly/2lCJZVg",
+    x = NULL, y = NULL
+  ) +
+  scale_fill_manual(values = c(
+    "Wrong" = "red",
+    "Right" = "green",
+    "Don't know" = "gray"
+  ))
+```
+
+### Code 
+```r
+ggplot(brexit, aes(y = opinion, fill = opinion)) +
+  geom_bar() + 
+  facet_wrap("region", nrow = 1) + 
+  guides(fill = "none") +
+  labs(
+    title = "Was Britain right/wrong to vote to leave EU?",
+    subtitle = "YouGov Survey Results, 2-3 September 2019",
+    caption = "Source document from YouGov: bit.ly/2lCJZVg",
+    x = NULL, y = NULL
+  ) +
+  scale_fill_manual(values = c(
+    "Wrong" = "red",
+    "Right" = "green",
+    "Don't know" = "gray"
+  ))
+```
+
+:::
+
+
+## Choose better colors
+
+[colorbrewer2.org](https://colorbrewer2.org){preview-link="true"}
+
+
+## Use better colors
+
+:::{.panel-tabset}
+
+### Plot 
+
+```{r}
+#| fig-height: 4
+#| fig-width: 8
+#| fig-align: center
+ggplot(brexit, aes(y = opinion, fill = opinion)) +
+  geom_bar() + 
+  facet_wrap("region", nrow = 1) + 
+  guides(fill = "none") +
+  labs(
+    title = "Was Britain right/wrong to vote to leave EU?",
+    subtitle = "YouGov Survey Results, 2-3 September 2019",
+    caption = "Source document from YouGov: bit.ly/2lCJZVg",
+    x = NULL, y = NULL
+  ) +
+  scale_fill_manual(values = c(
+    "Wrong" = "#ef8a62",
+    "Right" = "#67a9cf",
+    "Don't know" = "gray"
+  ))
+```
+
+### Code 
+```r
+ggplot(brexit, aes(y = opinion, fill = opinion)) +
+  geom_bar() + 
+  facet_wrap("region", nrow = 1) + 
+  guides(fill = "none") +
+  labs(
+    title = "Was Britain right/wrong to vote to leave EU?",
+    subtitle = "YouGov Survey Results, 2-3 September 2019",
+    caption = "Source document from YouGov: bit.ly/2lCJZVg",
+    x = NULL, y = NULL
+  ) +
+  scale_fill_manual(values = c(
+    "Wrong" = "#ef8a62",
+    "Right" = "#67a9cf",
+    "Don't know" = "gray"
+  ))
+  ```
+
+:::
+
+
+
+## Choose a theme
+
+:::{.panel-tabset}
+
+### Plot 
+
+```{r}
+#| fig-height: 4
+#| fig-width: 8
+#| fig-align: center
+ggplot(brexit, aes(y = opinion, fill = opinion)) +
+  geom_bar() + 
+  facet_wrap("region", nrow = 1) + 
+  guides(fill = "none") +
+  labs(
+    title = "Was Britain right/wrong to vote to leave EU?",
+    subtitle = "YouGov Survey Results, 2-3 September 2019",
+    caption = "Source document from YouGov: bit.ly/2lCJZVg",
+    x = NULL, y = NULL
+  ) +
+  scale_fill_manual(values = c(
+    "Wrong" = "#ef8a62",
+    "Right" = "#67a9cf",
+    "Don't know" = "gray"
+  )) +
+  theme_minimal()
+```
+
+### Code 
+```r
+ggplot(brexit, aes(y = opinion, fill = opinion)) +
+  geom_bar() + 
+  facet_wrap("region", nrow = 1) + 
+  guides(fill = "none") +
+  labs(
+    title = "Was Britain right/wrong to vote to leave EU?",
+    subtitle = "YouGov Survey Results, 2-3 September 2019",
+    caption = "Source document from YouGov: bit.ly/2lCJZVg",
+    x = NULL, y = NULL
+  ) +
+  scale_fill_manual(values = c(
+    "Wrong" = "#ef8a62",
+    "Right" = "#67a9cf",
+    "Don't know" = "#f7f7f7"
+  )) +
+  theme_minimal()
+```
+  
+:::
+
+
+
+
+## Adjust the general text size
+
+:::{.panel-tabset}
+
+### Plot 
+
+```{r}
+#| fig-height: 4
+#| fig-width: 8
+#| fig-align: center
+ggplot(brexit, aes(y = opinion, fill = opinion)) +
+  geom_bar() + 
+  facet_wrap("region", nrow = 1) + 
+  guides(fill = "none") +
+  labs(
+    title = "Was Britain right/wrong to vote to leave EU?",
+    subtitle = "YouGov Survey Results, 2-3 September 2019",
+    caption = "Source document from YouGov: bit.ly/2lCJZVg",
+    x = NULL, y = NULL
+  ) +
+  scale_fill_manual(values = c(
+    "Wrong" = "#ef8a62",
+    "Right" = "#67a9cf",
+    "Don't know" = "gray"
+  )) +
+  theme_minimal(base_size = 14)
+```
+
+### Code 
+```r
+ggplot(brexit, aes(y = opinion, fill = opinion)) +
+  geom_bar() + 
+  facet_wrap("region", nrow = 1) + 
+  guides(fill = "none") +
+  labs(
+    title = "Was Britain right/wrong to vote to leave EU?",
+    subtitle = "YouGov Survey Results, 2-3 September 2019",
+    caption = "Source document from YouGov: bit.ly/2lCJZVg",
+    x = NULL, y = NULL
+  ) +
+  scale_fill_manual(values = c(
+    "Wrong" = "#ef8a62",
+    "Right" = "#67a9cf",
+    "Don't know" = "gray"
+  )) +
+  theme_minimal(base_size = 14)
+```
+  
+:::
